@@ -41,8 +41,29 @@ public class GatewayConfigurationLoader implements ApplicationRunner {
     }
 
     public synchronized void refresh() {
-        List<GatewayRoute> routes = managementApiClient.fetchActiveRoutes();
+        try {
+            List<GatewayRoute> routes = managementApiClient.fetchActiveRoutes();
+            if (routes != null && !routes.isEmpty()) {
+                routeRegistry.replaceAll(routes);
+                return;
+            }
+        } catch (RuntimeException exception) {
+            log.warn("Management API route refresh failed ({})", exception.getClass().getSimpleName());
+        }
 
-        routeRegistry.replaceAll(routes);
+        if (routeRegistry.find("/demo/products").isEmpty()) {
+            GatewayRoute fallback = new GatewayRoute();
+            fallback.setId(1L);
+            fallback.setRouteId("demo-products");
+            fallback.setName("Demo Products API");
+            fallback.setPathPattern("/demo/products/**");
+            fallback.setTargetBaseUrl("https://dummyjson.com");
+            fallback.setTargetPathPrefix("/products");
+            fallback.setAllowedMethods(java.util.Set.of("GET"));
+            fallback.setActive(true);
+            fallback.setResponseTimeoutMs(5000);
+            routeRegistry.replaceAll(List.of(fallback));
+            log.info("Initialized fallback standalone route: /demo/products/** -> https://dummyjson.com/products");
+        }
     }
 }
