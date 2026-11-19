@@ -52,18 +52,30 @@ public class GatewayConfigurationLoader implements ApplicationRunner {
         }
 
         if (routeRegistry.find("/demo/products").isEmpty()) {
-            GatewayRoute fallback = new GatewayRoute();
-            fallback.setId(1L);
-            fallback.setRouteId("demo-products");
-            fallback.setName("Demo Products API");
-            fallback.setPathPattern("/demo/products/**");
-            fallback.setTargetBaseUrl("https://dummyjson.com");
-            fallback.setTargetPathPrefix("/products");
-            fallback.setAllowedMethods(java.util.Set.of("GET"));
-            fallback.setActive(true);
-            fallback.setResponseTimeoutMs(5000);
-            routeRegistry.replaceAll(List.of(fallback));
-            log.info("Initialized fallback standalone route: /demo/products/** -> https://dummyjson.com/products");
+            GatewayRoute fallbackProducts = new GatewayRoute();
+            fallbackProducts.setId(1L);
+            fallbackProducts.setRouteId("demo-products");
+            fallbackProducts.setName("Demo Products API");
+            fallbackProducts.setPathPattern("/demo/products/**");
+            fallbackProducts.setTargetBaseUrl("https://dummyjson.com");
+            fallbackProducts.setTargetPathPrefix("/products");
+            fallbackProducts.setAllowedMethods(java.util.Set.of("GET"));
+            fallbackProducts.setActive(true);
+            fallbackProducts.setResponseTimeoutMs(15000);
+
+            GatewayRoute fallbackPosts = new GatewayRoute();
+            fallbackPosts.setId(2L);
+            fallbackPosts.setRouteId("demo-posts");
+            fallbackPosts.setName("Demo Posts API");
+            fallbackPosts.setPathPattern("/demo/posts/**");
+            fallbackPosts.setTargetBaseUrl("https://jsonplaceholder.typicode.com");
+            fallbackPosts.setTargetPathPrefix("/posts");
+            fallbackPosts.setAllowedMethods(java.util.Set.of("GET"));
+            fallbackPosts.setActive(true);
+            fallbackPosts.setResponseTimeoutMs(15000);
+
+            routeRegistry.replaceAll(List.of(fallbackProducts, fallbackPosts));
+            log.info("Initialized fallback standalone routes: /demo/products/** and /demo/posts/**");
         }
     }
 }

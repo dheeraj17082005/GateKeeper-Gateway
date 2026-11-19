@@ -18,8 +18,8 @@ final class UpstreamClient {
     static final int MAX_BODY_BYTES = 4 * 1024 * 1024;
 
     private final HttpClient client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(3))
-            .followRedirects(HttpClient.Redirect.NEVER)
+            .connectTimeout(Duration.ofSeconds(10))
+            .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
     HttpResponse<byte[]> send(HttpRequest request, int timeoutMs)

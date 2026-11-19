@@ -15,6 +15,16 @@ public class GatewayController {
         this.gatewayService = gatewayService;
     }
 
+    @org.springframework.web.bind.annotation.GetMapping("/")
+    public ResponseEntity<java.util.Map<String, Object>> root() {
+        return ResponseEntity.ok(java.util.Map.of(
+                "name", "Gatekeeper API Gateway",
+                "appStatus", "UP",
+                "healthCheck", "/health",
+                "demoEndpoints", java.util.List.of("/demo/products/1", "/demo/posts/1")
+        ));
+    }
+
     @RequestMapping("/**")
     public ResponseEntity<byte[]> proxy(HttpServletRequest request) {
         return gatewayService.handle(request);

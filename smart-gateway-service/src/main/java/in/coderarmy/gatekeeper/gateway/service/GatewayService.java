@@ -108,6 +108,9 @@ public class GatewayService {
                     .method(request.getMethod(), body.length == 0
                             ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofByteArray(body));
             requestHeaders.forEach((name, values) -> values.forEach(value -> outgoing.header(name, value)));
+            if (requestHeaders.get(HttpHeaders.USER_AGENT) == null) {
+                outgoing.header("User-Agent", "Gatekeeper-Gateway/1.0");
+            }
             HttpRequest upstreamRequest = outgoing.build();
 
             if (route.isIdempotencyEnabled() && "POST".equals(request.getMethod())) {
