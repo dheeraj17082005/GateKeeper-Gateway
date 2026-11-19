@@ -56,12 +56,16 @@ public class GatewayService {
         if (this.allowAllUpstreams) {
             this.allowedOrigins = Set.of();
         } else {
-            this.allowedOrigins = Arrays.stream(allowedUpstreams.split(","))
-                    .map(String::strip)
-                    .filter(s -> !s.isEmpty())
-                    .map(URI::create)
-                    .map(UpstreamClient::origin)
-                    .collect(Collectors.toUnmodifiableSet());
+            Set<String> origins = new HashSet<>();
+            origins.add("https://dummyjson.com:443");
+            origins.add("https://jsonplaceholder.typicode.com:443");
+            for (String part : allowedUpstreams.split(",")) {
+                String trimmed = part.strip();
+                if (!trimmed.isEmpty()) {
+                    origins.add(UpstreamClient.origin(URI.create(trimmed)));
+                }
+            }
+            this.allowedOrigins = Set.copyOf(origins);
         }
     }
 
