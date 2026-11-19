@@ -15,8 +15,13 @@ public class GatewayController {
         this.gatewayService = gatewayService;
     }
 
-    @org.springframework.web.bind.annotation.GetMapping("/")
-    public ResponseEntity<java.util.Map<String, Object>> root() {
+    @org.springframework.web.bind.annotation.GetMapping(value = "/", produces = org.springframework.http.MediaType.TEXT_HTML_VALUE)
+    public org.springframework.core.io.Resource rootHtml() {
+        return new org.springframework.core.io.ClassPathResource("static/index.html");
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping(value = "/", produces = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<java.util.Map<String, Object>> rootJson() {
         return ResponseEntity.ok(java.util.Map.of(
                 "name", "Gatekeeper API Gateway",
                 "appStatus", "UP",
