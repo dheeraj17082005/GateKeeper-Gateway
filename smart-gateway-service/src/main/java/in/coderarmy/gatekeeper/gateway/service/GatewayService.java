@@ -41,21 +41,28 @@ public class GatewayService {
     private final ObjectMapper objectMapper;
     private final RateLimitService rateLimitService;
     private final IdempotencyService idempotencyService;
+    private final boolean allowAllUpstreams;
     private final Set<String> allowedOrigins;
     private final UpstreamClient upstream = new UpstreamClient();
 
     public GatewayService(RouteRegistry routeRegistry, ObjectMapper objectMapper,
                           RateLimitService rateLimitService, IdempotencyService idempotencyService,
-                          @Value("${gateway.allowed-upstreams}") String allowedUpstreams) {
+                          @Value("${gateway.allowed-upstreams:*}") String allowedUpstreams) {
         this.routeRegistry = routeRegistry;
         this.objectMapper = objectMapper;
         this.rateLimitService = rateLimitService;
         this.idempotencyService = idempotencyService;
-        this.allowedOrigins = Arrays.stream(allowedUpstreams.split(","))
-                .map(String::strip)
-                .map(URI::create)
-                .map(UpstreamClient::origin)
-                .collect(Collectors.toUnmodifiableSet());
+        this.allowAllUpstreams = allowedUpstreams.contains("*");
+        if (this.allowAllUpstreams) {
+            this.allowedOrigins = Set.of();
+        } else {
+            this.allowedOrigins = Arrays.stream(allowedUpstreams.split(","))
+                    .map(String::strip)
+                    .filter(s -> !s.isEmpty())
+                    .map(URI::create)
+                    .map(UpstreamClient::origin)
+                    .collect(Collectors.toUnmodifiableSet());
+        }
     }
 
     public ResponseEntity<byte[]> handle(HttpServletRequest request) {
@@ -93,7 +100,7 @@ public class GatewayService {
                     ? path.substring(compiled.getSourcePathPrefix().length()) : "";
             URI target = UpstreamClient.target(route.getTargetBaseUrl(), route.getTargetPathPrefix(),
                     suffix, request.getQueryString());
-            if (!allowedOrigins.contains(UpstreamClient.origin(target))) {
+            if (!allowAllUpstreams && !allowedOrigins.contains(UpstreamClient.origin(target))) {
                 return error(HttpStatus.BAD_GATEWAY, "Upstream is outside the configured allowlist",
                         correlationId, policyHeaders);
             }
