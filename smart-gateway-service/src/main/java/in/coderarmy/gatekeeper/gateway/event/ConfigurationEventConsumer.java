@@ -6,7 +6,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(name = "gateway.kafka.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "gateway.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class ConfigurationEventConsumer {
 
     private final GatewayConfigurationLoader configurationLoader;

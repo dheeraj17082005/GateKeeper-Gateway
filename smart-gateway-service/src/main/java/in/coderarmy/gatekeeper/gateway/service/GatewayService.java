@@ -142,11 +142,13 @@ public class GatewayService {
         } catch (IOException exception) {
             return error(HttpStatus.BAD_REQUEST, "Unable to read request body", correlationId, policyHeaders);
         } catch (TimeoutException exception) {
+            org.slf4j.LoggerFactory.getLogger(GatewayService.class).warn("Upstream timed out: {}", exception.getMessage());
             return error(HttpStatus.GATEWAY_TIMEOUT, "Upstream timed out", correlationId, policyHeaders);
         } catch (ExecutionException exception) {
+            org.slf4j.LoggerFactory.getLogger(GatewayService.class).error("Upstream request failed", exception.getCause());
             HttpStatus status = exception.getCause() instanceof HttpTimeoutException
                     ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY;
-            return error(status, "Upstream request failed", correlationId, policyHeaders);
+            return error(status, "Upstream request failed: " + exception.getCause().getMessage(), correlationId, policyHeaders);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             return error(HttpStatus.SERVICE_UNAVAILABLE, "Gateway request interrupted", correlationId, policyHeaders);
