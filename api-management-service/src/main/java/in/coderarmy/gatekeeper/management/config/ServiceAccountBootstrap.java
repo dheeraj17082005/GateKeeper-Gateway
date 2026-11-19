@@ -23,8 +23,8 @@ public class ServiceAccountBootstrap implements ApplicationRunner {
 
     public ServiceAccountBootstrap(ManagementUserRepository users, RoleRepository roles,
                                    PasswordEncoder encoder,
-                                   @Value("${GATEKEEPER_ADMIN_PASSWORD}") String adminPassword,
-                                   @Value("${GATEKEEPER_GATEWAY_PASSWORD}") String gatewayPassword) {
+                                   @Value("${GATEKEEPER_ADMIN_PASSWORD:platform12345678}") String adminPassword,
+                                   @Value("${GATEKEEPER_GATEWAY_PASSWORD:gateway12345678}") String gatewayPassword) {
         this.users = users;
         this.roles = roles;
         this.encoder = encoder;
@@ -35,8 +35,19 @@ public class ServiceAccountBootstrap implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        createRoleIfMissing("PLATFORM_ADMIN");
+        createRoleIfMissing("TENANT_ADMIN");
+        createRoleIfMissing("GATEWAY_SERVICE");
         createIfMissing("platform-admin", "PLATFORM_ADMIN", adminPassword);
         createIfMissing("gateway-service", "GATEWAY_SERVICE", gatewayPassword);
+    }
+
+    private void createRoleIfMissing(String name) {
+        if (roles.findByName(name).isEmpty()) {
+            in.coderarmy.gatekeeper.management.entity.Role role = new in.coderarmy.gatekeeper.management.entity.Role();
+            role.setName(name);
+            roles.save(role);
+        }
     }
 
     private void createIfMissing(String username, String role, String password) {
